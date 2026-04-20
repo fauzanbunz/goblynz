@@ -208,16 +208,14 @@
     async function processImageWithAI(base64Image) {
         
         // =========================================================================
-        // PERHATIAN: GANTI TEKS DI BAWAH INI DENGAN API KEY GOOGLE GEMINI ANDA
-        // Dapatkan gratis di: https://aistudio.google.com/app/apikey
+        // PERHATIAN UNTUK GITHUB:
+        // Saat file ini diunggah ke GitHub, HAPUS tanda kutip kosong dan ganti 
+        // baris di bawah menjadi API Key Anda seperti ini:
+        // const apiKey = "AIzaSyCdN1mZTGxJJPGX1iUPdV-XTW8hEM7hB5I";
+        // (Selama diuji coba di layar Preview web ini, biarkan tetap "")
         // =========================================================================
-        const apiKey = "AIzaSyCdN1mZTGxJJPGX1iUPdV-XTW8hEM7hB5I"; 
+        const apiKey = ""; 
         // =========================================================================
-
-        if (apiKey === "AIzaSyCdN1mZTGxJJPGX1iUPdV-XTW8hEM7hB5I" || apiKey === "") {
-            alert("API Key belum dipasang! Silakan edit file HTML dan masukkan API Key Gemini Anda.");
-            throw new Error("API Key missing");
-        }
 
         const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${apiKey}`;
         
