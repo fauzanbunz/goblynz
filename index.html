@@ -25,13 +25,11 @@
     <style>
         @font-face {
             font-family: 'EnchantedLand';
-            /* Menggunakan relative path, pastikan file font ada di folder yang sama dengan index.html */
             src: url('./Enchanted Land.otf') format('opentype');
         }
 
         body {
             background-color: #948bda; 
-            /* Menggunakan relative path, pastikan file gg.svg ada di folder yang sama */
             background-image: url('./gg.svg');
             background-size: 200px; 
             background-repeat: repeat;
@@ -103,7 +101,17 @@
                 <p class="text-lg mt-2 opacity-90">Transforming into a Goblynz...</p>
             </div>
 
-            <!-- 4. Final Result Image -->
+            <!-- 4. Error State Overlay -->
+            <div id="errorState" class="hidden absolute inset-0 bg-red-900/95 z-40 flex-col items-center justify-center text-white text-center p-4">
+                <i class="fa-solid fa-triangle-exclamation text-6xl mb-4 text-red-400"></i>
+                <p class="font-bold text-2xl text-red-200">Magic Failed!</p>
+                <p id="errorMessage" class="text-sm mt-2 opacity-90 break-words w-full px-2 max-h-24 overflow-y-auto">Error details here</p>
+                <button id="closeErrorBtn" class="mt-4 px-6 py-2 bg-white text-red-900 font-bold rounded-lg hover:bg-gray-200 border-2 border-red-900 shadow-[2px_2px_0px_#7f1d1d] active:translate-y-1 active:shadow-none">
+                    Try Again
+                </button>
+            </div>
+
+            <!-- 5. Final Result Image -->
             <img id="resultImage" class="hidden absolute inset-0 w-full h-full object-contain bg-bgPurple z-20" src="" alt="Generated Goblynz">
 
         </div>
@@ -146,6 +154,10 @@
     const generateBtn = document.getElementById('generateBtn');
     
     const loadingState = document.getElementById('loadingState');
+    const errorState = document.getElementById('errorState');
+    const errorMessage = document.getElementById('errorMessage');
+    const closeErrorBtn = document.getElementById('closeErrorBtn');
+
     const resultImage = document.getElementById('resultImage');
     const resultButtons = document.getElementById('resultButtons');
     const resetBtn = document.getElementById('resetBtn');
@@ -171,9 +183,19 @@
                 resultImage.classList.add('hidden');
                 resultButtons.classList.add('hidden');
                 resetBtn.classList.add('hidden');
+                errorState.classList.add('hidden');
+                errorState.classList.remove('flex');
             }
             reader.readAsDataURL(file);
         }
+    });
+
+    // Close Error
+    closeErrorBtn.addEventListener('click', function() {
+        errorState.classList.add('hidden');
+        errorState.classList.remove('flex');
+        generateBtn.disabled = false;
+        generateBtn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> GENERATE';
     });
 
     // Reset Flow
@@ -188,6 +210,8 @@
         generateBtn.classList.add('hidden');
         resultButtons.classList.add('hidden');
         resetBtn.classList.add('hidden');
+        errorState.classList.add('hidden');
+        errorState.classList.remove('flex');
     });
 
     async function fetchWithRetry(url, options, retries = 5) {
@@ -195,7 +219,13 @@
         for (let i = 0; i < retries; i++) {
             try {
                 const response = await fetch(url, options);
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                
+                // Peningkatan penanganan error dari server
+                if (!response.ok) {
+                    const errData = await response.json().catch(() => null);
+                    const errMsg = errData?.error?.message || `HTTP Error ${response.status}: Failed to reach AI service`;
+                    throw new Error(errMsg);
+                }
                 return await response.json();
             } catch (error) {
                 if (i === retries - 1) throw error;
@@ -209,13 +239,16 @@
         
         // =========================================================================
         // PERHATIAN UNTUK GITHUB:
-        // Saat file ini diunggah ke GitHub, HAPUS tanda kutip kosong dan ganti 
-        // baris di bawah menjadi API Key Anda seperti ini:
-        // const apiKey = "AIzaSyCdN1mZTGxJJPGX1iUPdV-XTW8hEM7hB5I";
-        // (Selama diuji coba di layar Preview web ini, biarkan tetap "")
+        // Ganti baris di bawah ini secara MANUAL di editor Anda dengan API Key asli.
+        // contoh: const apiKey = "AIzaSyCdN1mZTGxJJPGX1iUPdV-XTW8hEM7hB5I";
         // =========================================================================
         const apiKey = ""; 
         // =========================================================================
+
+        if (!apiKey && window.location.hostname !== "localhost" && !window.location.hostname.includes("google")) {
+           // Catatan: Di lingkungan Canvas, biarkan "" kosong tidak masalah.
+           // Tapi jika Anda host di GitHub/Lokal dan lupa mengisi, akan error di sini.
+        }
 
         const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${apiKey}`;
         
@@ -246,7 +279,7 @@
         const generatedBase64 = response.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
         
         if (!generatedBase64) {
-            throw new Error("Gagal mengekstrak gambar dari AI.");
+            throw new Error("AI did not return an image. It might have blocked the prompt due to safety settings.");
         }
 
         return `data:image/jpeg;base64,${generatedBase64}`;
@@ -258,6 +291,8 @@
 
         loadingState.classList.remove('hidden');
         loadingState.classList.add('flex');
+        errorState.classList.add('hidden');
+        errorState.classList.remove('flex');
         
         generateBtn.disabled = true;
         generateBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> GENERATING...';
@@ -281,8 +316,11 @@
             
             loadingState.classList.add('hidden');
             loadingState.classList.remove('flex');
-            generateBtn.disabled = false;
-            generateBtn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> GENERATE';
+            
+            // Tampilkan Pesan Error di dalam UI Canvas
+            errorMessage.textContent = error.message || "Unknown API Connection Error. Please check your API Key or Network.";
+            errorState.classList.remove('hidden');
+            errorState.classList.add('flex');
         }
     });
 </script>
