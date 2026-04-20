@@ -1,1 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GOBLYNZ Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        goblinGreen: '#c0d435', 
+                        bgPurple: '#948bda',    
+                        goblinDark: '#1a1a1a'
+                    },
+                    fontFamily: {
+                        sans: ['EnchantedLand', 'sans-serif'], 
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @font-face {
+            font-family: 'EnchantedLand';
+            /* Menggunakan relative path, pastikan file font ada di folder yang sama dengan index.html */
+            src: url('./Enchanted Land.otf') format('opentype');
+        }
 
+        body {
+            background-color: #948bda; 
+            /* Menggunakan relative path, pastikan file gg.svg ada di folder yang sama */
+            background-image: url('./gg.svg');
+            background-size: 200px; 
+            background-repeat: repeat;
+            text-transform: lowercase; 
+            
+            animation: moveDiagonal 20s linear infinite;
+        }
+
+        @keyframes moveDiagonal {
+            0% {
+                background-position: 0 0;
+            }
+            100% {
+                background-position: 200px 200px; 
+            }
+        }
+
+        .goblin-border {
+            border: 4px solid #1a1a1a;
+            border-radius: 1rem;
+            box-shadow: 6px 6px 0px #1a1a1a;
+            transition: all 0.2s ease;
+        }
+        .goblin-btn:hover {
+            transform: translate(2px, 2px);
+            box-shadow: 4px 4px 0px #1a1a1a;
+        }
+        .goblin-btn:active {
+            transform: translate(6px, 6px);
+            box-shadow: 0px 0px 0px #1a1a1a;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center p-6 text-goblinDark">
+
+    <!-- Header -->
+    <header class="w-full max-w-md text-center mb-6 pt-6">
+        <h1 class="text-5xl md:text-6xl font-bold mb-4 text-goblinGreen drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)] tracking-wider">
+            GOBLYNZ GENERATOR
+        </h1>
+        <p class="text-lg font-semibold bg-white/90 inline-block px-4 py-2 rounded-full goblin-border">
+            Transform ordinary photos into 2D Goblynz figures!
+        </p>
+    </header>
+
+    <!-- Main Content App (Single Frame) -->
+    <main class="w-full max-w-md bg-[#fdfaf5] p-6 goblin-border flex flex-col gap-4">
+        
+        <!-- The Magic Frame -->
+        <div id="magicFrame" class="w-full border-4 border-goblinDark rounded-xl bg-gray-50 flex flex-col items-center justify-center overflow-hidden aspect-square relative cursor-pointer hover:bg-gray-100 transition">
+            
+            <!-- File Input -->
+            <input type="file" id="fileInput" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-50" accept="image/*">
+            
+            <!-- 1. Upload State -->
+            <div id="uploadPlaceholder" class="flex flex-col items-center justify-center text-center p-6 pointer-events-none">
+                <i class="fa-solid fa-cloud-arrow-up text-6xl text-gray-400 mb-4"></i>
+                <p class="text-xl font-bold text-gray-600">Click or Drag photo here</p>
+                <p class="text-md text-gray-500 mt-2">Format: JPG, PNG</p>
+            </div>
+
+            <!-- 2. Original Image Preview -->
+            <img id="imagePreview" class="hidden absolute inset-0 w-full h-full object-cover z-10" src="" alt="Preview">
+
+            <!-- 3. Loading State Overlay -->
+            <div id="loadingState" class="hidden absolute inset-0 bg-bgPurple/90 z-30 flex-col items-center justify-center text-white text-center p-4">
+                <i class="fa-solid fa-spinner fa-spin text-6xl mb-4"></i>
+                <p class="font-bold text-2xl">Redrawing...</p>
+                <p class="text-lg mt-2 opacity-90">Transforming into a Goblynz...</p>
+            </div>
+
+            <!-- 4. Final Result Image -->
+            <img id="resultImage" class="hidden absolute inset-0 w-full h-full object-contain bg-bgPurple z-20" src="" alt="Generated Goblynz">
+
+        </div>
+
+        <!-- Action Area -->
+        <div id="actionArea" class="flex flex-col gap-3 mt-2">
+            
+            <!-- Generate Button -->
+            <button id="generateBtn" class="hidden w-full bg-goblinGreen text-2xl font-bold py-4 px-6 goblin-border goblin-btn cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> GENERATE
+            </button>
+
+            <!-- Result Action Buttons -->
+            <div id="resultButtons" class="hidden flex gap-3">
+                <button class="flex-1 bg-white border-2 border-goblinDark py-3 text-xl font-bold rounded-lg hover:bg-gray-100 transition shadow-[2px_2px_0px_#1a1a1a] active:shadow-none active:translate-y-1">
+                    <i class="fa-solid fa-download"></i> Save
+                </button>
+                <button class="flex-1 bg-[#1da1f2] text-white border-2 border-goblinDark py-3 text-xl font-bold rounded-lg hover:bg-[#1a91da] transition shadow-[2px_2px_0px_#1a1a1a] active:shadow-none active:translate-y-1">
+                    <i class="fa-brands fa-twitter"></i> Share
+                </button>
+            </div>
+
+            <!-- Reset / Try Again Button -->
+            <button id="resetBtn" class="hidden w-full bg-gray-200 text-gray-800 text-xl font-bold py-3 px-6 mt-1 border-2 border-goblinDark rounded-lg hover:bg-gray-300 transition shadow-[2px_2px_0px_#1a1a1a] active:shadow-none active:translate-y-1">
+                <i class="fa-solid fa-rotate-left"></i> Upload Another Photo
+            </button>
+
+        </div>
+
+    </main>
+
+    <footer class="mt-8 text-white/90 font-semibold text-center text-lg drop-shadow-md">
+        <p>UI for AI Goblynz Generator &copy; 2026</p>
+    </footer>
+
+    <script>
+    const fileInput = document.getElementById('fileInput');
+    const imagePreview = document.getElementById('imagePreview');
+    const uploadPlaceholder = document.getElementById('uploadPlaceholder');
+    const generateBtn = document.getElementById('generateBtn');
+    
+    const loadingState = document.getElementById('loadingState');
+    const resultImage = document.getElementById('resultImage');
+    const resultButtons = document.getElementById('resultButtons');
+    const resetBtn = document.getElementById('resetBtn');
+
+    let currentBase64Image = null;
+
+    // Handle Image Upload
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                currentBase64Image = event.target.result;
+                imagePreview.src = currentBase64Image;
+                
+                imagePreview.classList.remove('hidden');
+                uploadPlaceholder.classList.add('hidden');
+                generateBtn.classList.remove('hidden');
+                generateBtn.disabled = false;
+                
+                fileInput.classList.add('hidden');
+                
+                resultImage.classList.add('hidden');
+                resultButtons.classList.add('hidden');
+                resetBtn.classList.add('hidden');
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Reset Flow
+    resetBtn.addEventListener('click', function() {
+        currentBase64Image = null;
+        fileInput.value = '';
+        
+        uploadPlaceholder.classList.remove('hidden');
+        fileInput.classList.remove('hidden');
+        imagePreview.classList.add('hidden');
+        resultImage.classList.add('hidden');
+        generateBtn.classList.add('hidden');
+        resultButtons.classList.add('hidden');
+        resetBtn.classList.add('hidden');
+    });
+
+    async function fetchWithRetry(url, options, retries = 5) {
+        const delays = [1000, 2000, 4000, 8000, 16000];
+        for (let i = 0; i < retries; i++) {
+            try {
+                const response = await fetch(url, options);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                return await response.json();
+            } catch (error) {
+                if (i === retries - 1) throw error;
+                await new Promise(resolve => setTimeout(resolve, delays[i]));
+            }
+        }
+    }
+
+    // Call Gemini Image-to-Image API
+    async function processImageWithAI(base64Image) {
+        
+        // =========================================================================
+        // PERHATIAN: GANTI TEKS DI BAWAH INI DENGAN API KEY GOOGLE GEMINI ANDA
+        // Dapatkan gratis di: https://aistudio.google.com/app/apikey
+        // =========================================================================
+        const apiKey = "AIzaSyCdN1mZTGxJJPGX1iUPdV-XTW8hEM7hB5I"; 
+        // =========================================================================
+
+        if (apiKey === "AIzaSyCdN1mZTGxJJPGX1iUPdV-XTW8hEM7hB5I" || apiKey === "") {
+            alert("API Key belum dipasang! Silakan edit file HTML dan masukkan API Key Gemini Anda.");
+            throw new Error("API Key missing");
+        }
+
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${apiKey}`;
+        
+        const mimeType = base64Image.split(';')[0].split(':')[1];
+        const base64Data = base64Image.split(',')[1];
+
+        const prompt = "REPLICATE THE EXACT POSE, ANGLE, AND VIEW of the original photo, BUT MAKE THE HEAD 2X LARGER LIKE A BOBBLEHEAD CARICATURE. The generated Goblynz must have an exaggerated, massive head compared to its body. EXTREMELY SIMPLE FLAT 2D CARTOON ART. ZERO SHADING, ZERO GRADIENTS. Transform the person in the photo into a minimalist cartoon goblin. Keep the EXACT SAME HAIRSTYLE, HAIR LENGTH, and HEADWEAR as the original photo. MUST USE EXACT COLORS: Skin MUST be exactly #c0d435 (yellowish-green), Background MUST be exactly #948bda (muted purple), Eyes are solid yellow. Features: very long pointy nose, very long pointy ears, MASSIVE OVERSIZED HEAD. Art Style: VERY THICK, solid black inking with rough, jagged, wobbly edges (like a textured ink brush or MS Paint). Flat solid coloring. Maintain exact posture and expression of the original photo but with caricature head proportions.";
+
+        const payload = {
+            contents: [{
+                role: "user",
+                parts: [
+                    { text: prompt },
+                    { inlineData: { mimeType: mimeType, data: base64Data } }
+                ]
+            }],
+            generationConfig: {
+                responseModalities: ["TEXT", "IMAGE"]
+            }
+        };
+
+        const response = await fetchWithRetry(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const generatedBase64 = response.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
+        
+        if (!generatedBase64) {
+            throw new Error("Gagal mengekstrak gambar dari AI.");
+        }
+
+        return `data:image/jpeg;base64,${generatedBase64}`;
+    }
+
+    // Process AI Generation
+    generateBtn.addEventListener('click', async function() {
+        if (!currentBase64Image) return;
+
+        loadingState.classList.remove('hidden');
+        loadingState.classList.add('flex');
+        
+        generateBtn.disabled = true;
+        generateBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> GENERATING...';
+
+        try {
+            const newImageSrc = await processImageWithAI(currentBase64Image);
+            
+            resultImage.src = newImageSrc;
+            
+            loadingState.classList.add('hidden');
+            loadingState.classList.remove('flex');
+            imagePreview.classList.add('hidden');
+            resultImage.classList.remove('hidden');
+            
+            generateBtn.classList.add('hidden');
+            resultButtons.classList.remove('hidden');
+            resetBtn.classList.remove('hidden');
+            
+        } catch (error) {
+            console.error("AI Generation Error:", error);
+            
+            loadingState.classList.add('hidden');
+            loadingState.classList.remove('flex');
+            generateBtn.disabled = false;
+            generateBtn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> GENERATE';
+        }
+    });
+</script>
+</body>
+</html>
